@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  auth:
+    build: ./act-2
+    container_name: auth-service
+    environment:
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/auth_db
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      - mongo
+    expose:
+      - "3000"
+
+  gateway:
+    build: ./gateway
+    container_name: api-gateway
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - AUTH_SERVICE_URL=http://auth:3000
+    depends_on:
+      - auth
+
+volumes:
+  mongo_data:
