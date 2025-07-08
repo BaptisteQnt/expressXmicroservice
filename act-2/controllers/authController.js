@@ -3,27 +3,30 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 
 exports.register = async (req, res) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    try {
-        const existingUser = await User.findOne({ email });
-        if(existingUser) {
-            return res.status(400).json({ message: "Cet email est déja utilisé."});
-        }
+  console.log("📥 [Register] Reçu :", { email, password });
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const existingUser = await User.findOne({ email });
+    console.log("🔍 [Register] Utilisateur existant :", existingUser);
 
-        const newUser = new User({
-            email,
-            password: hashedPassword,
-        });
-
-        await newUser.save();
-
-        res.status(201).json({ message: "Utilisateur rentrer"});
-    } catch (err) {
-        res.status(500).json({ message: "Erreur lors de l'inscription"});
+    if (existingUser) {
+      return res.status(400).json({ message: "Cet email est déjà utilisé." });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("🔐 [Register] Password hashé");
+
+    const newUser = new User({ email, password: hashedPassword });
+    await newUser.save();
+
+    console.log("✅ [Register] Utilisateur enregistré !");
+    res.status(201).json({ message: "Utilisateur créé avec succès." });
+  } catch (error) {
+    console.error("❌ [Register] Erreur :", error.message);
+    res.status(500).json({ message: "Erreur lors de l'inscription." });
+  }
 };
 
 exports.login = async (req, res) => {
